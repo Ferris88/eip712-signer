@@ -30,10 +30,24 @@ EIP-712 签名测试成功案例记录
     "spenders": [
       "0xF3dE3C0d654FDa23daD170f0f320a92172509127"
     ],
-    "nonce": 1750070899677
+    "nonce": 1750065115100
   },
   "primaryType": "Permits",
   "types": {
+    "EIP712Domain": [
+      {
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "name": "chainId",
+        "type": "uint256"
+      },
+      {
+        "name": "verifyingContract",
+        "type": "address"
+      }
+    ],
     "Permits": [
       {
         "name": "details",
@@ -93,11 +107,29 @@ EIP-712 签名测试成功案例记录
     "spenders": [
       "0xF3dE3C0d654FDa23daD170f0f320a92172509127"
     ],
-    "nonce": 1750070899677,
+    "nonce": 1750065115100,
     "owner": "0x6f9ffea7370310cd0f890dfde5e0e061059dcfd9"
   },
   "primaryType": "Permits",
   "types": {
+    "EIP712Domain": [
+      {
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "name": "chainId",
+        "type": "uint256"
+      },
+      {
+        "name": "verifyingContract",
+        "type": "address"
+      },
+      {
+        "name": "owner",
+        "type": "address"
+      }
+    ],
     "Permits": [
       {
         "name": "details",
@@ -110,10 +142,6 @@ EIP-712 签名测试成功案例记录
       {
         "name": "nonce",
         "type": "uint256"
-      },
-      {
-        "name": "owner",
-        "type": "address"
       }
     ],
     "PermitDetails": [
