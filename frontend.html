@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EIP-712 签名器</title>
+    <style>
+        body {
+            font-family: 'Consolas', 'Monaco', monospace;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+        }
+        .container {
+            background-color: #2d2d2d;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            font-family: 'Consolas', monospace;
+            font-size: 14px;
+        }
+        textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #666;
+            cursor: not-allowed;
+        }
+        .secondary-btn {
+            background-color: #2196F3;
+        }
+        .secondary-btn:hover {
+            background-color: #1976D2;
+        }
+        .info-btn {
+            background-color: #FF9800;
+        }
+        .info-btn:hover {
+            background-color: #F57F17;
+        }
+        .result {
+            background-color: #1a1a1a;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            border-left: 4px solid #4CAF50;
+        }
+        .error {
+            border-left-color: #f44336;
+            color: #ff6b6b;
+        }
+        .warning {
+            border-left-color: #ff9800;
+            color: #ffb74d;
+        }
+        .info {
+            border-left-color: #2196F3;
+            color: #64b5f6;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-break: break-all;
+            background-color: #0d1117;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .copy-btn {
+            background-color: #6c757d;
+            font-size: 12px;
+            padding: 4px 8px;
+            margin-left: 10px;
+        }
+        .copy-btn:hover {
+            background-color: #5a6268;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .status-online {
+            background-color: #4CAF50;
+        }
+        .status-offline {
+            background-color: #f44336;
+        }
+        .server-info {
+            background-color: #263238;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196F3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 EIP-712 签名器</h1>
+        <p>连接到后端API进行安全签名</p>
+        
+        <div class="server-info">
+            <h3>📡 服务器状态</h3>
+            <p>
+                <span id="serverStatus" class="status-indicator status-offline"></span>
+                <span id="serverStatusText">检查中...</span>
+            </p>
+            <p><strong>API地址:</strong> <span id="apiUrl">http://localhost:3000</span></p>
+            <p><strong>签名地址:</strong> <span id="signerAddress">获取中...</span></p>
+            <button onclick="checkServerStatus()" class="info-btn">🔄 检查服务器状态</button>
+            <button onclick="getSignerAddress()" class="info-btn">🔑 获取签名地址</button>
+        </div>
+        
+        <div class="input-group">
+            <label for="apiEndpoint">🌐 API服务器地址:</label>
+            <input type="text" id="apiEndpoint" value="http://localhost:3000" 
+                   placeholder="http://localhost:3000">
+        </div>
+        
+        <div class="input-group">
+            <label for="jsonData">📄 EIP-712 JSON数据:</label>
+            <textarea id="jsonData" placeholder="粘贴你的EIP-712 JSON数据...">{
+  "domain": {
+    "name": "AuthTransfer",
+    "chainId": 1,
+    "verifyingContract": "0x40aA958dd87FC8305b97f2BA922CDdCa374bcD7f"
+  },
+  "message": {
+    "details": [{
+      "token": "0x0000000000000000000000000000000000000000",
+      "expiration": 3242342
+    }],
+    "spenders": ["0xF3dE3C0d654FDa23daD170f0f320a92172509127"],
+    "nonce": 1750070899677
+  },
+  "primaryType": "Permits",
+  "types": {
+    "Permits": [
+      {"name": "details", "type": "PermitDetails[]"},
+      {"name": "spenders", "type": "address[]"},
+      {"name": "nonce", "type": "uint256"}
+    ],
+    "PermitDetails": [
+      {"name": "token", "type": "address"},
+      {"name": "expiration", "type": "uint256"}
+    ]
+  }
+}</textarea>
+        </div>
+        
+        <button onclick="signEIP712API()" id="signBtn">🔥 调用API签名</button>
+        <button onclick="formatJSON()" class="secondary-btn">📝 格式化JSON</button>
+        <button onclick="clearAll()" class="secondary-btn">🗑️ 清空</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        let currentApiUrl = 'http://localhost:3000';
+        
+        window.addEventListener('load', function() {
+            formatJSON();
+            setTimeout(() => {
+                checkServerStatus();
+                getSignerAddress();
+            }, 500);
+        });
+        
+        document.getElementById('apiEndpoint').addEventListener('change', function() {
+            currentApiUrl = this.value;
+            document.getElementById('apiUrl').textContent = currentApiUrl;
+            checkServerStatus();
+        });
+        
+        async function checkServerStatus() {
+            const statusIndicator = document.getElementById('serverStatus');
+            const statusText = document.getElementById('serverStatusText');
+            
+            try {
+                statusText.textContent = '检查中...';
+                
+                const response = await fetch(`${currentApiUrl}/api/health`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    statusIndicator.className = 'status-indicator status-online';
+                    statusText.textContent = `在线 - ${data.service} v${data.version}`;
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+            } catch (error) {
+                statusIndicator.className = 'status-indicator status-offline';
+                statusText.textContent = `离线 - ${error.message}`;
+            }
+        }
+        
+        async function getSignerAddress() {
+            try {
+                const response = await fetch(`${currentApiUrl}/api/address`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('signerAddress').textContent = data.address;
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+            } catch (error) {
+                document.getElementById('signerAddress').textContent = '获取失败';
+            }
+        }
+        
+        async function signEIP712API() {
+            const resultDiv = document.getElementById('result');
+            const signBtn = document.getElementById('signBtn');
+            
+            resultDiv.innerHTML = '<div class="result info">⏳ 正在调用后端API签名...</div>';
+            signBtn.disabled = true;
+            signBtn.textContent = '签名中...';
+            
+            try {
+                const jsonData = document.getElementById('jsonData').value.trim();
+                
+                if (!jsonData) {
+                    throw new Error("请输入EIP-712 JSON数据");
+                }
+                
+                const data = JSON.parse(jsonData);
+                
+                if (!data.domain || !data.types || !data.message) {
+                    throw new Error("JSON必须包含domain, types, message字段");
+                }
+                
+                const response = await fetch(`${currentApiUrl}/api/sign`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    const resultHtml = `
+                        <div class="result">
+                            <h3>✅ API签名成功</h3>
+                            <p><strong>📍 后端签名地址:</strong> ${result.signerAddress}</p>
+                            <p><strong>🕐 签名时间:</strong> ${result.timestamp}</p>
+                            
+                            <p><strong>🔒 签名结果:</strong> 
+                                <button class="copy-btn" onclick="copyToClipboard('${result.signature}')">复制</button>
+                            </p>
+                            <pre>${result.signature}</pre>
+                            
+                            <h4>📊 签名分解:</h4>
+                            <p><strong>r:</strong> ${result.signatureBreakdown.r}</p>
+                            <p><strong>s:</strong> ${result.signatureBreakdown.s}</p>
+                            <p><strong>v:</strong> ${result.signatureBreakdown.v}</p>
+                            
+                            <h4>🔍 签名验证:</h4>
+                            <p><strong>验证结果:</strong> ${result.isValid ? '✅ 通过' : '❌ 失败'}</p>
+                            <p><strong>主类型:</strong> ${result.primaryType}</p>
+                        </div>
+                    `;
+                    
+                    resultDiv.innerHTML = resultHtml;
+                } else {
+                    resultDiv.innerHTML = `<div class="result error">❌ API签名失败: ${result.error || '未知错误'}</div>`;
+                }
+                
+            } catch (error) {
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    resultDiv.innerHTML = `
+                        <div class="result error">
+                            ❌ 无法连接到后端服务器<br>
+                            请确保后端服务器正在运行：<br>
+                            <code>npm start</code>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="result error">❌ 错误: ${error.message}</div>`;
+                }
+            } finally {
+                signBtn.disabled = false;
+                signBtn.textContent = '🔥 调用API签名';
+            }
+        }
+        
+        function formatJSON() {
+            const textarea = document.getElementById('jsonData');
+            try {
+                const data = JSON.parse(textarea.value);
+                textarea.value = JSON.stringify(data, null, 2);
+            } catch (error) {
+                console.warn("JSON格式化失败:", error.message);
+            }
+        }
+        
+        function clearAll() {
+            document.getElementById('jsonData').value = '';
+            document.getElementById('result').innerHTML = '';
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                alert('✅ 已复制到剪贴板!');
+            }, function(err) {
+                console.error('复制失败: ', err);
+            });
+        }
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                signEIP712API();
+            }
+            if (e.ctrlKey && e.shiftKey && e.key === 'F') {
+                formatJSON();
+            }
+        });
+    </script>
+</body>
+</html> 
