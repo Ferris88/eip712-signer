@@ -1,0 +1,162 @@
+EIP-712 签名测试成功案例记录
+=====================================
+
+📅 创建时间: 2024-06-16
+🎯 目的: 记录联调过程中成功的签名案例，便于后续参考和复现
+
+=======================================
+✅ 测试案例 #1 - AuthTransfer 权限签名
+=======================================
+
+📋 案例描述: 
+- 类型: Permits 权限授权签名
+- 合约: AuthTransfer
+- 链: Ethereum Mainnet (chainId: 1)
+
+📄 成功的JSON数据:
+{
+  "domain": {
+    "name": "AuthTransfer",
+    "chainId": 1,
+    "verifyingContract": "0x40aA958dd87FC8305b97f2BA922CDdCa374bcD7f"
+  },
+  "message": {
+    "details": [
+      {
+        "token": "0x0000000000000000000000000000000000000000",
+        "expiration": 3242342
+      }
+    ],
+    "spenders": [
+      "0xF3dE3C0d654FDa23daD170f0f320a92172509127"
+    ],
+    "nonce": 1750070899677
+  },
+  "primaryType": "Permits",
+  "types": {
+    "Permits": [
+      {
+        "name": "details",
+        "type": "PermitDetails[]"
+      },
+      {
+        "name": "spenders",
+        "type": "address[]"
+      },
+      {
+        "name": "nonce",
+        "type": "uint256"
+      }
+    ],
+    "PermitDetails": [
+      {
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "name": "expiration",
+        "type": "uint256"
+      }
+    ]
+  }
+}
+
+🔧 关键问题和解决方案:
+- 问题: "Eip712Domain" 导致 "ambiguous primary types" 错误
+- 解决: 移除 types 中的 Eip712Domain，ethers.js 会自动处理
+- 注意: 各种 Domain 变体都需要移除 (EIP712Domain, Eip712Domain, eip712Domain)
+
+✅ 签名结果: 
+- 状态: 成功
+- 签名地址: 0xFCAd0B19bB29D4674531d6f115237E16AfCE377c
+- 验证: 通过
+
+🕐 测试时间: 2024-06-16 20:30
+
+=======================================
+✅ 测试案例 #2 - (待补充)
+=======================================
+
+{
+  "domain": {
+    "name": "AuthTransfer",
+    "chainId": 1,
+    "verifyingContract": "0x40aA958dd87FC8305b97f2BA922CDdCa374bcD7f"
+  },
+  "message": {
+    "details": [
+      {
+        "token": "0x0000000000000000000000000000000000000000",
+        "expiration": 3242342
+      }
+    ],
+    "spenders": [
+      "0xF3dE3C0d654FDa23daD170f0f320a92172509127"
+    ],
+    "nonce": 1750070899677,
+    "owner": "0x6f9ffea7370310cd0f890dfde5e0e061059dcfd9"
+  },
+  "primaryType": "Permits",
+  "types": {
+    "Permits": [
+      {
+        "name": "details",
+        "type": "PermitDetails[]"
+      },
+      {
+        "name": "spenders",
+        "type": "address[]"
+      },
+      {
+        "name": "nonce",
+        "type": "uint256"
+      },
+      {
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "PermitDetails": [
+      {
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "name": "expiration",
+        "type": "uint256"
+      }
+    ]
+  }
+}
+
+=======================================
+📝 测试笔记和经验总结
+=======================================
+
+1. EIP712Domain 处理:
+   - 永远不要在 types 中包含任何形式的 Domain 定义
+   - ethers.js 会根据 domain 字段自动生成
+
+2. primaryType 设置:
+   - 确保 primaryType 在 types 中存在
+   - 通常是你要签名的主要数据结构
+
+3. 数据类型匹配:
+   - address 类型必须是有效的以太坊地址格式
+   - uint256 可以是数字或字符串
+   - 数组类型用 [] 表示
+
+4. 常见错误:
+   - "ambiguous primary types" -> 移除 Domain 定义
+   - "primaryType not found" -> 检查 primaryType 拼写
+   - "invalid address" -> 检查地址格式
+
+=======================================
+🔗 相关资源
+=======================================
+
+- EIP-712 标准: https://eips.ethereum.org/EIPS/eip-712
+- ethers.js 文档: https://docs.ethers.io/
+- 本地服务器: http://localhost:3000
+
+======================================= 
